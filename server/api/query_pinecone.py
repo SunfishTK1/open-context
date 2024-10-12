@@ -14,7 +14,7 @@ namespace_name = "example-namespace"
 pc = Pinecone(api_key="YOUR_API_KEY")
 index = pc.Index(index_name)
 
-def query(search_query, clientId=None, courseId=None, lectureId=None, top_k=10):
+def query(search_query, clientId=None, courseId=None, lectureId=None, document_type=None, top_k=10):
     
     response = client.embeddings.create(
             input=search_query,
@@ -34,6 +34,12 @@ def query(search_query, clientId=None, courseId=None, lectureId=None, top_k=10):
         our_filter.update({
             "lectureId": {"$eq": lectureId}
         })
+    if document_type:
+        our_filter.update({
+            "documentType": {"$eq": document_type}
+        })
+
+    
     
     return index.query(
         namespace=namespace_name,
