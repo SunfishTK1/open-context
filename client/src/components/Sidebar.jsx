@@ -9,11 +9,11 @@ const Sidebar = () => {
     { name: 'Home', icon: Home, path: '/' },
     { name: 'Chat', icon: MessageSquare, path: '/chat' },
     { name: 'Lectures', icon: BookOpen, path: '/lectures' },
-    { name: 'Quizzes', icon: HelpCircle, path: '/quizzes' },
+    // { name: 'Quizzes', icon: HelpCircle, path: '/quizzes' },
   ];
 
   return (
-    <div className="w-64 bg-white h-full p-4 flex flex-col">
+    <div className="w-64 bg-white h-fit p-4 flex flex-col shadow-md">
       <div className="flex items-center mb-6">
         <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center mr-2">
           <span className="text-white text-xs">OC</span>
