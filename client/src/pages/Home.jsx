@@ -21,7 +21,7 @@ const Home = () => {
           </h2>
           <p className="text-gray-600">Capture and transcribe your lectures for easy reference.</p>
         </Link>
-        <Link to="/quizzes" className="block p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+        <Link to="/lectures" className="block p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
           <h2 className="text-xl font-semibold mb-2 text-indigo-600 flex items-center">
             <HelpCircle className="mr-2" />
             Generate a Quiz
