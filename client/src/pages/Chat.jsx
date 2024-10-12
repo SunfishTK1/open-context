@@ -12,14 +12,26 @@ const Chat = () => {
   }, []);
 
   const saveChat = (messages) => {
-    const newChat = {
-      id: Date.now(),
-      title: messages[0]?.text.slice(0, 30) || 'New Chat',
-      messages,
-    };
-    const updatedHistory = [...chatHistory, newChat];
-    setChatHistory(updatedHistory);
-    localStorage.setItem('chatHistory', JSON.stringify(updatedHistory));
+    if (selectedChat) {
+      // Update existing chat
+      const updatedHistory = chatHistory.map(chat => 
+        chat.id === selectedChat.id ? { ...chat, messages } : chat
+      );
+      setChatHistory(updatedHistory);
+      setSelectedChat({ ...selectedChat, messages });
+      localStorage.setItem('chatHistory', JSON.stringify(updatedHistory));
+    } else {
+      // Create new chat
+      const newChat = {
+        id: Date.now(),
+        title: messages[0]?.text.slice(0, 30) || 'New Chat',
+        messages,
+      };
+      const updatedHistory = [...chatHistory, newChat];
+      setChatHistory(updatedHistory);
+      setSelectedChat(newChat);
+      localStorage.setItem('chatHistory', JSON.stringify(updatedHistory));
+    }
   };
 
   const deleteChat = (id) => {
@@ -36,12 +48,13 @@ const Chat = () => {
   };
 
   return (
-    <div className="flex h-svh bg-gray-100">
+    <div className="flex h-screen bg-gray-100">
       <ChatHistory
         chatHistory={chatHistory}
         onSelectChat={setSelectedChat}
         onDeleteChat={deleteChat}
         onNewChat={handleNewChat}
+        selectedChatId={selectedChat?.id}
       />
       <div className="flex-1">
         <ChatInterface
