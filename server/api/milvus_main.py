@@ -1,7 +1,7 @@
 import openai
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.responses import FileResponse
-from pymilvus import Collection, FieldSchema, CollectionSchema, DataType, connections
+from pymilvus import Collection, FieldSchema, CollectionSchema, DataType, connections, MilvusClient
 import aiofiles
 import os
 import fitz  # PyMuPDF
@@ -23,26 +23,23 @@ client = OpenAI()
 
 
 
-badlands = MilvusClient("./milvus_open_context_v0.db")
 
-badlands.create_collection(
-    collection_name="open_context_v0",
-    dimension=3072  # The vectors we will use in this demo has 384 dimensions
-)
 # Connect to MilvusDB
-#connections.connect(alias="default", host='localhost', port='19530')
+connections.connect(alias="default", host='localhost', port='19530')
 
 # Define Milvus schema (create if it doesn't exist)
 fields = [
+    FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),  # Primary key field
     FieldSchema(name="client_id", dtype=DataType.INT64),
-    FieldSchema(name="course_id", dtype=DataType.STRING),  # course_id as STRING
-    FieldSchema(name="lecture_id", dtype=DataType.STRING),  # lecture_id as STRING
-    FieldSchema(name="time_stamp", dtype=DataType.STRING),
-    FieldSchema(name="data_source", dtype=DataType.STRING),  # New field for data source
+    FieldSchema(name="course_id", dtype=DataType.VARCHAR, max_length=100),  # course_id as VARCHAR with max_length
+    FieldSchema(name="lecture_id", dtype=DataType.VARCHAR, max_length=100),  # lecture_id as VARCHAR with max_length
+    FieldSchema(name="time_stamp", dtype=DataType.VARCHAR, max_length=100),  # time_stamp as VARCHAR with max_length
+    FieldSchema(name="data_source", dtype=DataType.VARCHAR, max_length=50),  # data_source as VARCHAR with max_length
     FieldSchema(name="chunk_number", dtype=DataType.INT64),  # Field to track chunk number
     FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=3072),  # Embedding dimensions
-    FieldSchema(name="text_chunk", dtype=DataType.STRING)  # Store actual text chunk
+    FieldSchema(name="text_chunk", dtype=DataType.VARCHAR, max_length=65535)  # Store actual text chunk, large enough for long chunks
 ]
+
 
 schema = CollectionSchema(fields, description="Embeddings and metadata collection")
 collection = Collection(name="data_embeddings", schema=schema)
@@ -143,11 +140,11 @@ async def save_file(client_id: int, course_id: str, lecture_id: str, file: Uploa
 
 @app.post("/upload_data/")
 async def upload_data(
-    client_id: int,
-    course_id: str,  # course_id as string
-    lecture_id: str,  # lecture_id as string
-    time_stamp: str,
-    data_source: DataSource,
+    client_id: int = Form(...),
+    course_id: str = Form(...),  # course_id as string
+    lecture_id: str = Form(...),  # lecture_id as string
+    time_stamp: str = Form(...),  # time_stamp as string
+    data_source: DataSource = Form,
     file: Optional[UploadFile] = File(None),
     typed_text: Optional[str] = Form(None)
 ):
