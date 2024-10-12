@@ -128,12 +128,23 @@ async def process_typed_text(text: str):
 # Helper function to save files
 async def save_file(client_id: int, course_id: str, lecture_id: str, file: UploadFile, file_type: str) -> str:
     directory = f"uploaded_files/{client_id}/{course_id}/{lecture_id}/{file_type}/"
-    os.makedirs(directory, exist_ok=True)
+    try:
+        os.makedirs(directory, exist_ok=True)
+        os.chmod(directory, 0o755)  # Set appropriate permissions to prevent access issues
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create directory: {str(e)}")
+
     file_path = os.path.join(directory, file.filename)
 
-    async with aiofiles.open(file_path, 'wb') as out_file:
-        content = await file.read()
-        await out_file.write(content)
+    try:
+        async with aiofiles.open(file_path, 'wb') as out_file:
+            content = await file.read()
+            await out_file.write(content)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=500, detail="File was not saved successfully.")
 
     return file_path
 
@@ -202,10 +213,21 @@ async def upload_data(
 
             # Save typed notes as a file
             directory = f"uploaded_files/{client_id}/{course_id}/{lecture_id}/typed_notes/"
-            os.makedirs(directory, exist_ok=True)
+            try:
+                os.makedirs(directory, exist_ok=True)
+                os.chmod(directory, 0o755)  # Set appropriate permissions to prevent access issues
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Failed to create directory: {str(e)}")
+
             file_path = os.path.join(directory, f"typed_notes_{lecture_id}.txt")
-            async with aiofiles.open(file_path, 'w') as f:
-                await f.write(typed_text)
+            try:
+                async with aiofiles.open(file_path, 'w') as f:
+                    await f.write(typed_text)
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Failed to save typed notes: {str(e)}")
+
+            if not os.path.exists(file_path):
+                raise HTTPException(status_code=500, detail="Typed notes file was not saved successfully.")
 
             # Process the typed text, chunk it, and generate embeddings
             embeddings, text_chunks = await process_typed_text(typed_text)
@@ -245,11 +267,12 @@ async def get_file(client_id: int, course_id: str, lecture_id: str, file_type: D
 
     # Return the first file found in the directory
     files = os.listdir(directory)
-    if not files:
-        raise HTTPException(status_code=404, detail="No files found in the specified directory.")
+    filtered_files = [f for f in files if f.endswith(file_type.value)]
+    if not filtered_files:
+        raise HTTPException(status_code=404, detail="No files of the expected type found in the specified directory.")
 
-    file_path = os.path.join(directory, files[0])
-    return FileResponse(path=file_path, filename=files[0])
+    file_path = os.path.join(directory, filtered_files[0])
+    return FileResponse(path=file_path, filename=filtered_files[0])
 
 
 if __name__ == "__main__":
