@@ -5,8 +5,6 @@ import { MessageCircle, Mic, HelpCircle } from 'lucide-react';
 const Home = () => {
   return (
     <div className="min-h-screen bg-[#FFF4DD] bg-center flex items-center justify-center text-[#424530]" style={{ backgroundImage: "url('/abstract-bg1.jpg')" }}>
-
-
       <div className="bg-white bg-opacity-90 p-8 rounded-lg shadow-lg max-w-4xl w-full">
         <h1 className="text-4xl font-bold mb-8 text-center text-indigo-800">Welcome to OpenContext</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
