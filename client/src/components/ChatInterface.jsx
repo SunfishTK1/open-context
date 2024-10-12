@@ -23,6 +23,7 @@ const ChatInterface = ({ initialMessages, onSaveChat }) => {
       const newMessages = [...messages, { text: inputText, sender: 'user' }];
       setMessages(newMessages);
       setInputText('');
+      onSaveChat(newMessages);
       // Simulate AI response
       setTimeout(() => {
         const updatedMessages = [...newMessages, { text: "I'm processing your request...", sender: 'ai' }];
@@ -35,7 +36,7 @@ const ChatInterface = ({ initialMessages, onSaveChat }) => {
   return (
     <div className="flex h-screen flex-col bg-gray-50">
       <div className="bg-white p-4 border-b border-gray-200">
-        <h2 className="text-xl font-bold">Chat with AI</h2>
+        <h2 className="text-xl font-bold">Chat with OpenContext</h2>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message, index) => (
