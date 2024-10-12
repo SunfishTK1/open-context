@@ -2,3 +2,7 @@ fastapi
 pydantic
 python-multipart
 uvicorn
+
+pymilvus 
+openai 
+aiofiles
