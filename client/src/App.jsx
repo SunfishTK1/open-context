@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
 import Chat from './pages/Chat';
-import Lectures from './pages/Lectures';
+import Documents from './pages/Documents';
 import Quizzes from './pages/Quizzes';
 
 const Navigation = () => {
@@ -22,7 +22,7 @@ const Navigation = () => {
         </div>
         <div className="flex space-x-4">
           <Link to="/chat" className={`${isHomePage ? 'text-[#424530]' : 'text-[#FFF4DD]'} hover:text-[#E09132] transition-colors duration-200`}>Chat</Link>
-          <Link to="/lectures" className={`${isHomePage ? 'text-[#424530]' : 'text-[#FFF4DD]'} hover:text-[#E09132] transition-colors duration-200`}>Lectures</Link>
+          <Link to="/documents" className={`${isHomePage ? 'text-[#424530]' : 'text-[#FFF4DD]'} hover:text-[#E09132] transition-colors duration-200`}>Documents</Link>
           <Link to="/quizzes" className={`${isHomePage ? 'text-[#424530]' : 'text-[#FFF4DD]'} hover:text-[#E09132] transition-colors duration-200`}>Quizzes</Link>
         </div>
       </div>
@@ -44,9 +44,9 @@ const AppContent = () => {
             <Chat />
           </main>
         } />
-        <Route path="/lectures" element={
+        <Route path="/Documents" element={
           <main className="container mx-auto mt-8 px-4">
-            <Lectures />
+            <Documents />
           </main>
         } />
         <Route path="/quizzes" element={
