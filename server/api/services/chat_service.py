@@ -1,4 +1,6 @@
 # services/chat_service.py
+from typing import List, Dict
+from models import ChatMessage
 
 class ChatProcessor:
     def __init__(self):

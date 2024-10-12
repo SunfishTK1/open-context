@@ -1,7 +1,15 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI
+from fastapi import File, UploadFile
+import shutil
+from typing import List
+from services.chat_service import ChatProcessor
+from models import ChatMessage
+
 
 app = FastAPI()
 
+
+# Upload Router
 @app.post("/upload/text")
 async def upload_text_file(
     client_id: str,
@@ -55,3 +63,26 @@ async def upload_audio_stream(
     # Save the file and update database records
     await websocket.send_text("Audio stream uploaded successfully")
     await websocket.close()
+
+
+# Retrieve Router
+@app.get("/lectures/{lecture_id}")
+async def get_lecture_info(lecture_id: str):
+    # Retrieve lecture info from the database
+    lecture = {}  # Fetch lecture data
+    return lecture
+
+@app.get("/courses/{course_id}")
+async def get_course_info(course_id: str):
+    # Retrieve course info from the database
+    course = {}  # Fetch course data
+    return course
+
+
+# Chat Router
+chat_processor = ChatProcessor()
+
+@app.post("/chat")
+async def chat_exchange(chat_history: List[ChatMessage]):
+    response = chat_processor.process_chat_history(chat_history)
+    return response
