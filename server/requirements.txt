@@ -1,0 +1,15 @@
+fastapi
+pydantic
+python-multipart
+uvicorn
+
+
+pymilvus 
+openai 
+aiofiles
+
+
+pytesseract
+pdf2image
+pikepdf
+tempfile
