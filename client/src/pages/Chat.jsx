@@ -1,15 +1,12 @@
 import React from 'react';
-import Sidebar from '../components/Sidebar';
 import ChatInterface from '../components/ChatInterface';
 
 const Chat = () => {
   return (
-    <>
-      <Sidebar />
-      <div className="flex-1">
-        <ChatInterface />
-      </div>
-    </>
+    <div className="max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">Chat with AI</h1>
+      <ChatInterface />
+    </div>
   );
 };
 
