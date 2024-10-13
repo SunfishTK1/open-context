@@ -10,20 +10,20 @@ const Navigation = () => {
   const isHomePage = location.pathname === '/';
 
   return (
-    <nav className={`${isHomePage ? '' : 'bg-[#A58E74] text-[#FFF4DD]'} p-4 shadow-md`}>
+    <nav className={`${isHomePage ? 'bg-[#424530] text-[#FFEFCD]' : 'bg-[#424530] text-[#FFEFCD]'} p-4 shadow-md`}>
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <div className={`w-10 h-10 ${isHomePage ? 'bg-[#A58E74] text-[#FFF4DD]' : 'bg-[#FFF4DD] text-[#A58E74]'} rounded-full flex items-center justify-center font-display font-bold text-xl`}>
+          <div className={`w-10 h-10 ${isHomePage ? 'bg-[#A58E74] text-[#FFF4DD]' : 'bg-[#A58E74] text-[#FFF4DD]'} rounded-full flex items-center justify-center font-display font-bold text-xl`}>
             OC
           </div>
-          <Link to="/" className={`${isHomePage ? 'text-[#424530]' : 'text-[#FFF4DD]'} hover:text-[#E09132] transition-colors duration-200`}>
+          <Link to="/" className={`${isHomePage ? 'text-[#FFF4DD]' : 'text-[#FFF4DD]'} hover:text-[#E09132] transition-colors duration-200`}>
             <h1 className="text-2xl font-display font-bold">OpεnContεxt</h1>
           </Link>
         </div>
         <div className="flex space-x-4">
-          <Link to="/chat" className={`${isHomePage ? 'text-[#424530]' : 'text-[#FFF4DD]'} hover:text-[#E09132] transition-colors duration-200`}>Chat</Link>
-          <Link to="/documents" className={`${isHomePage ? 'text-[#424530]' : 'text-[#FFF4DD]'} hover:text-[#E09132] transition-colors duration-200`}>Documents</Link>
-          <Link to="/quizzes" className={`${isHomePage ? 'text-[#424530]' : 'text-[#FFF4DD]'} hover:text-[#E09132] transition-colors duration-200`}>Quizzes</Link>
+          <Link to="/chat" className={`${isHomePage ? 'text-[#FFF4DD]' : 'text-[#FFF4DD]'} hover:text-[#E09132] transition-colors duration-200`}>Chat</Link>
+          <Link to="/documents" className={`${isHomePage ? 'text-[#FFF4DD]' : 'text-[#FFF4DD]'} hover:text-[#E09132] transition-colors duration-200`}>Documents</Link>
+          <Link to="/quizzes" className={`${isHomePage ? 'text-[#FFF4DD]' : 'text-[#FFF4DD]'} hover:text-[#E09132] transition-colors duration-200`}>Quizzes</Link>
         </div>
       </div>
     </nav>
@@ -35,7 +35,7 @@ const AppContent = () => {
   const isHomePage = location.pathname === '/';
 
   return (
-    <div className={`min-h-screen ${isHomePage ? '' : 'bg-[#FFF4DD]'}`}>
+    <div className={`h-screen ${isHomePage ? '' : 'bg-[#FFF4DD]'}`}>
       <Navigation />
       <Routes>
         <Route path="/" element={<Home />} />
