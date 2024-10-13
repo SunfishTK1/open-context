@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
-from fastapi.responses import JSONResponse
 from fastapi.responses import *
+from fastapi.middleware.cors import CORSMiddleware
+import os
+from dotenv import load_dotenv
 
 import os
 from dotenv import load_dotenv
@@ -10,6 +12,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI()
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # React app's origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Define the request body model
 class ChatRequest(BaseModel):
@@ -25,9 +36,11 @@ async def chat_completions(request: ChatRequest):
     model="gpt-4o",
     messages=request.messages
     )
-    message_list.append({'role':'assistant', 'content': str(response.choices[0].message.content)})
+    # message_list.append({'role':'assistant', 'content': str(response.choices[0].message.content)})
+
+    new_message = {'role': 'assistant', 'content': response.choices[0].message.content}
     print({'role':'assistant', 'content': str(response.choices[0].message.content)})
-    return message_list
+    return request.messages + [new_message]
     '''
     return JSONResponse(
             status_code=200,
