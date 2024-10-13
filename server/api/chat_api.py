@@ -112,38 +112,42 @@ async def chat_completions(request: ChatRequest):
     message_list = messages
     message_list.extend(request.messages)
     response = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-4o-mini",
     messages=message_list,
     tools=tools
     )
     tool_called = response.choices[0].message.tool_calls
     tool_results = []
     if tool_called:
-        print(response.choices[0].message)
-        message_list.extend(response.choices[0].message)
+        #print(response.choices[0].message)
+        message_list.append({"role": "assistant", "tool_calls": response.choices[0].message.tool_calls})
         #for tool_call in response.choices[0].message.tool_calls:
         tool_call = response.choices[0].message.tool_calls[0]
         arguments = json.loads(tool_call.function.arguments)
         search_query = arguments['search_query']
         search_result = query(search_query)
-        tool_results.append(search_result)
+        #tool_results.append(search_result)
         function_call_result_message = {
             "role": "tool",
             "content": str(search_result),
-            "name": 'query',
             "tool_call_id": tool_call.id
         }
-        message_list.extend({'role':'tool', 'content': str(function_call_result_message)})
+        #print("YOLO")
+        #print(function_call_result_message)
+        #print('\n')
+        #print('\n')
+        #print('\n')
+        message_list.append(function_call_result_message)
 
         response = client.chat.completions.create(
-            model='gpt-4o',
+            model='gpt-4o-mini',
             messages=message_list,
         )
-        print(message_list)
+        #print(message_list)
         message_list.extend({'role':'assistant', 'content': str(response.choices[0].message.content)})
-        print("CRAZY BAT OUT OF CONGRESS")
+        #print("CRAZY BAT OUT OF CONGRESS")
 
-    print({'role':'assistant', 'content': str(response.choices[0].message.content)})
+    message_list.append({'role':'assistant', 'content': str(response.choices[0].message.content)})
     return message_list
     '''
     return JSONResponse(
