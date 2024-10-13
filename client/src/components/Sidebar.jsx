@@ -2,72 +2,77 @@ import React, { useState, useRef } from 'react';
 import { MessageSquare, Upload, FileText } from 'lucide-react';
 import axios from 'axios';
 import { jsPDF } from 'jspdf';
+import { uploadAudio } from '../services/audioService';
 
-const Sidebar = () => {
+const Sidebar = ({ clientId, courseId, onUpload }) => {
     const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState(null);
-  const [previewImages, setPreviewImages] = useState([]);
-  const fileInputRef = useRef(null);
+    const [error, setError] = useState(null);
+    const [previewImages, setPreviewImages] = useState([]);
+    const fileInputRef = useRef(null);
 
-  const handleUploadLecture = async (event) => {
-    const file = event.target.files[0];
-    if (file && file.type.startsWith('audio/')) {
-      console.log("Uploaded lecture:", file);
-      // implement the logic to handle the audio file
-    } else {
-      setError("Please upload an audio file for lectures.");
-    }
-  };
 
-  const handleUploadPDF = async (event) => {
-    const file = event.target.files[0];
-    if (file && file.type === 'application/pdf') {
-      setIsUploading(true);
-      setError(null);
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        console.log("file sent: " + file.name)
-
-        const response = await fetch(
-            'http://0.0.0.0:8080/extract_text/',
-            {
-                method:"POST",
-                body:formData,
+    const handleUploadLecture = async (event) => {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('audio/')) {
+            try {
+                const lectureId = Date.now().toString();
+                await uploadAudio(file, clientId, courseId, lectureId);
+                console.log("Lecture uploaded successfully:", file.name);
+                // You might want to update some state or notify the user of successful upload
+            } catch (error) {
+                console.error("Error uploading lecture:", error);
+                setError("Error uploading lecture. Please try again.");
             }
-        );
+        } else {
+            setError("Please upload an audio file for lectures.");
+        }
+    };
 
-        const extractedText = await response.text(); 
-        console.log("Extracted text:", extractedText);
+    const handleUploadPDF = async (event) => {
+        const file = event.target.files[0];
+        if (file && file.type === 'application/pdf') {
+            setIsUploading(true);
+            setError(null);
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
 
+                console.log("file sent: " + file.name);
 
-        // const response = await axios.post('http://0.0.0.0:8080/convert/', formData, {
-        //   headers: {
-        //     'Content-Type': 'multipart/form-data',
-        //   },
-        //   responseType: 'blob',
-        // });
+                // const response = await fetch(
+                //     'http://0.0.0.0:8080/extract_text/',
+                //     {
+                //         method: "POST",
+                //         body: formData,
+                //     }
+                // );
 
+                // const extractedText = await response.text(); 
+                // console.log("Extracted text:", extractedText);
 
-        console.log("Response from the server: " + response.data);
-        // const url = window.URL.createObjectURL(new Blob([response.data]));
-        // const link = document.createElement('a');
-        // link.href = url;
-        // link.setAttribute('download', `searchable_${file.name}`);
-        // document.body.appendChild(link);
-        // link.click();
-        // link.remove();
-      } catch (error) {
-        console.error("Error uploading PDF:", error);
-        setError("Error processing PDF. Please try again.");
-      } finally {
-        setIsUploading(false);
-      }
-    } else {
-      setError("Please upload a PDF file.");
-    }
-  };
+                // Create a new document object
+                const newDocument = {
+                    id: Date.now().toString(),
+                    title: file.name,
+                    date: new Date().toLocaleDateString(),
+                    content: "This is just some random text",
+                    type: 'pdf'
+                };
+
+                // Call the onUpload prop to update the parent component's state
+                onUpload(newDocument);
+
+                console.log("PDF uploaded and processed successfully");
+            } catch (error) {
+                console.error("Error uploading PDF:", error);
+                setError("Error processing PDF. Please try again.");
+            } finally {
+                setIsUploading(false);
+            }
+        } else {
+            setError("Please upload a PDF file.");
+        }
+    };
 
   const handleUploadNotes = async (event) => {
     const files = Array.from(event.target.files);
@@ -148,7 +153,7 @@ const Sidebar = () => {
         />
       </label>
       {isUploading && <p className="text-olive-600">Uploading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {/* {error && <p className="text-red-500">{error}</p>} */}
       {previewImages.length > 0 && (
         <div className="mt-4">
           <h3 className="text-olive-700 font-semibold mb-2">Image Previews:</h3>

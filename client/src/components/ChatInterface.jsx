@@ -1,53 +1,74 @@
 import React, { useState, useEffect } from 'react';
-import { Send, Mic } from 'lucide-react';
+import { Send, Mic, Upload } from 'lucide-react';
 import ChatHistory from './ChatHistory';
 
 const ChatInterface = () => {
-  const [messages, setMessages] = useState([]);
-  const [inputText, setInputText] = useState('');
-  const [currentChatId, setCurrentChatId] = useState(null);
+    const [messages, setMessages] = useState([]);
+    const [inputText, setInputText] = useState('');
+    const [currentChatId, setCurrentChatId] = useState(null);
+    const [uploadedFile, setUploadedFile] = useState(null);
+    const [clientId, setClientId] = useState('default_client');
+    const [courseId, setCourseId] = useState('default_course');
+    const [lectureId, setLectureId] = useState('default_lecture');
+    const [chatHistory, setChatHistory] = useState([]);
+  
 
-  useEffect(() => {
-    // Load chat history from localStorage
-    const savedChatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
-    if (savedChatHistory.length > 0) {
-      setCurrentChatId(savedChatHistory[0].id);
-      setMessages(savedChatHistory[0].messages);
-    }
-  }, []);
+    useEffect(() => {
+        fetchChatHistory();
+      }, []);
 
-  const handleSendMessage = async () => {
-    if (inputText.trim()) {
-      const newMessage = { role: 'user', content: inputText };
-      const updatedMessages = [...messages, newMessage];
-      setMessages(updatedMessages);
-      setInputText('');
-
-      try {
-        const response = await fetch('http://localhost:8000/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: updatedMessages }),
-        });
-
-        if (!response.ok) {
-          throw new Error('API request failed');
+      const fetchChatHistory = async () => {
+        try {
+          const response = await fetch('http://localhost:8000/chat/history');
+          if (!response.ok) {
+            throw new Error('Failed to fetch chat history');
+          }
+          const data = await response.json();
+          setChatHistory(data);
+          if (data.length > 0) {
+            setCurrentChatId(data[0].id);
+            setMessages(data[0].messages);
+          }
+        } catch (error) {
+          console.error('Error fetching chat history:', error);
         }
-
-        const data = await response.json();
-        setMessages(data);
-
-        // Update chat history in localStorage
-        const chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
-        const updatedHistory = chatHistory.map(chat => 
-          chat.id === currentChatId ? { ...chat, messages: data } : chat
-        );
-        localStorage.setItem('chatHistory', JSON.stringify(updatedHistory));
-      } catch (error) {
-        console.error('Error sending message:', error);
-      }
-    }
-  };
+      };
+    
+      const handleSendMessage = async () => {
+        if (inputText.trim()) {
+          const newMessage = { role: 'user', content: inputText };
+          const updatedMessages = [...messages, newMessage];
+          setMessages(updatedMessages);
+          setInputText('');
+    
+          try {
+            const response = await fetch('http://localhost:8000/chat/completions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                messages: updatedMessages,
+                uploadedFileId: uploadedFile ? uploadedFile.id : null // Include the uploaded file ID if available
+              }),
+            });
+    
+            if (!response.ok) {
+              throw new Error('API request failed');
+            }
+    
+            const data = await response.json();
+            setMessages(data);
+    
+            // Update chat history in localStorage
+            const chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+            const updatedHistory = chatHistory.map(chat => 
+              chat.id === currentChatId ? { ...chat, messages: data } : chat
+            );
+            localStorage.setItem('chatHistory', JSON.stringify(updatedHistory));
+          } catch (error) {
+            console.error('Error sending message:', error);
+          }
+        }
+      };
 
   const handleNewChat = () => {
     const newChatId = Date.now().toString();
@@ -80,16 +101,55 @@ const ChatInterface = () => {
     }
   };
 
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch(`http://localhost:8002/upload-pdf/${clientId}/${courseId}/${lectureId}/pdf`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('PDF upload failed');
+        }
+
+        const data = await response.json();
+        console.log('PDF processed:', data);
+        
+        // Update this part to match the actual response structure
+        setUploadedFile({
+          name: file.name,
+          id: data.path || data.id || 'unknown' // Use an appropriate identifier from the response
+        });
+        
+        // Add a system message to indicate that a PDF has been uploaded
+        const newMessage = { role: 'system', content: `PDF "${file.name}" has been uploaded and processed. You can now ask questions about its content.` };
+        setMessages(prevMessages => [...prevMessages, newMessage]);
+      } catch (error) {
+        console.error('Error uploading PDF:', error);
+        // Handle error (e.g., show an error message to the user)
+      }
+    } else {
+      console.error('Please upload a PDF file');
+      // Show an error message to the user
+    }
+  };
+
   return (
     <div className="flex h-screen">
       <ChatHistory
+        chatHistory={chatHistory}
         onSelectChat={handleSelectChat}
         onDeleteChat={handleDeleteChat}
         onNewChat={handleNewChat}
         currentChatId={currentChatId}
       />
       <div className="flex-1 flex flex-col">
-        <div className="flex-1 p-4 space-y-4">
+        <div className="flex-1 p-4 space-y-4 overflow-y-auto">
           {messages.map((message, index) => (
             <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-3/4 p-3 rounded-lg ${
@@ -118,7 +178,21 @@ const ChatInterface = () => {
             <button className="ml-2 text-[#424530] hover:text-[#E09132] transition-colors">
               <Mic size={20} />
             </button>
+            <label className="ml-2 cursor-pointer">
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <Upload size={20} className="text-[#424530] hover:text-[#E09132] transition-colors" />
+            </label>
           </div>
+          {uploadedFile && (
+            <div className="mt-2 text-sm text-[#424530]">
+              Uploaded: {uploadedFile.name}
+            </div>
+          )}
         </div>
       </div>
     </div>

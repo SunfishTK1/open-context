@@ -14,13 +14,18 @@ const GenerateQuiz = ({ documents, onClose }) => {
       const generatedQuestions = documents.flatMap(doc => [
         {
           question: `What is the main topic of ${doc.type} ${doc.number}?`,
-          options: ["Option A", "Option B", "Option C", "Option D"],
+          options: ["Catastrophic Forgetting", "Ethics of AI", "Future of Neural Networks", "Machine Learning Essentials"],
           correctAnswer: 1
         },
         {
-          question: `Which concept was explained in detail during ${doc.type} ${doc.number}?`,
-          options: ["Concept X", "Concept Y", "Concept Z", "Concept W"],
+          question: `Which type of learning is most affected by Catastrophic Forgetting?`,
+          options: ["Reinforcement Learning", "Continual Learning", "Supervised Learning", "Unsupervised Learning"],
           correctAnswer: 2
+        }, 
+        {
+            question: `Which type of learning is most affected by Catastrophic Forgetting?`,
+            options: ["Principal Component Analysis (PCA)", "Batch Normalization", "Gradient Descent Optimization", "Elastic Weight Consolidation (EWC)"],
+            correctAnswer: 4  
         }
       ]);
       setQuestions(generatedQuestions);

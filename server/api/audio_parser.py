@@ -15,6 +15,8 @@ import numpy as np
 from enum import Enum
 from typing import Optional, List
 
+from fastapi.middleware.cors import CORSMiddleware
+
 from datetime import datetime
 import uuid
 
@@ -31,6 +33,15 @@ namespace_name = "example-namespace"
 keyB = os.getenv("PINECONE_API_KEY")
 
 app = FastAPI()
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # React app's origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # Enum for data source types
@@ -68,12 +79,9 @@ async def get_audio_file(client_id: str, course_id: str, lecture_id: str, file_t
     Endpoint to retrieve raw data files (audio, typed_text)
     """
     file_path = f"uploaded_files/{client_id}-{course_id}-{lecture_id}-{file_type}"
-    try:
-        with open(file_path, "rb") as audio_file:
-            audio_bytes = audio_file.read()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    return {"audio_data": audio_bytes.decode("ISO-8859-1")}  # Adjust decoding as needed
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(file_path)
 
 
 # main.py
@@ -111,6 +119,12 @@ async def upload_audio(client_id: str, course_id: str, lecture_id: str, file_typ
 
         index = pc.Index("example-index2")
         await file.seek(0)
+
+        file_path = f"uploaded_files/{client_id}-{course_id}-{lecture_id}-{file_type}"
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, "wb") as f:
+            f.write(await file.read())
+
         with open('./temp.mp3','wb') as temp_file:
             temp_file.write(await file.read())
         with open('./temp.mp3','rb') as temp_file:      
@@ -155,7 +169,6 @@ async def upload_audio(client_id: str, course_id: str, lecture_id: str, file_typ
         print("SUCCESS")
 
     except Exception as e:
-        # Log the exception if needed
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
     return {"message": "Audio processed and text embedded successfully."}
 
