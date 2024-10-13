@@ -6,12 +6,23 @@ from fastapi.responses import *
 from pinecone import Pinecone
 import json
 
+from fastapi.middleware.cors import CORSMiddleware
+
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 app = FastAPI()
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # React app's origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 index_name = "example-index2"
 namespace_name = "default"
@@ -147,8 +158,9 @@ async def chat_completions(request: ChatRequest):
         message_list.extend({'role':'assistant', 'content': str(response.choices[0].message.content)})
         #print("CRAZY BAT OUT OF CONGRESS")
 
-    message_list.append({'role':'assistant', 'content': str(response.choices[0].message.content)})
-    return message_list
+    new_message = {'role': 'assistant', 'content': response.choices[0].message.content}
+    return request.messages + [new_message]
+
     '''
     return JSONResponse(
             status_code=200,

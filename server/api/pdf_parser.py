@@ -219,6 +219,6 @@ async def upload_pdf(client_id: str, course_id: str, lecture_id: str, doctype: s
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8002)
     
 
