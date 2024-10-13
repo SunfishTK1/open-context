@@ -126,13 +126,13 @@ const LectureRecorder = () => {
 
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-custom mt-6">
-      <h2 className="text-3xl font-display font-bold mb-6 text-primary">Lecture Recorder</h2>
+    <div className="p-6 rounded-xl mt-6">
+      <h2 className="text-3xl font-display font-bold mb-6 text-[#424530]">Lecture Recorder</h2>
       <div className="flex items-center mb-8 space-x-4">
         {isRecording ? (
           <button
             onClick={stopRecording}
-            className="btn btn-secondary flex items-center"
+            className="btn btn-secondary bg-[#EECC91] flex items-center"
           >
             <Square size={20} className="mr-2" />
             Stop Recording
@@ -140,7 +140,7 @@ const LectureRecorder = () => {
         ) : (
           <button
             onClick={startRecording}
-            className="btn btn-primary flex items-center"
+            className="btn btn-primary bg-[#424530] flex items-center"
           >
             <Mic size={20} className="mr-2" />
             Start Recording
@@ -152,10 +152,10 @@ const LectureRecorder = () => {
           <input type="file" accept="audio/*" onChange={uploadAudio} className="hidden" />
         </label>
       </div>
-      <h3 className="text-2xl font-display font-semibold mb-4 text-primary-dark">Recorded Lectures</h3>
-      <ul className="space-y-4">
+      <h3 className="text-2xl font-display font-semibold mb-4 text-[#424530]">Recorded Lectures</h3>
+      <ul className="space-y-4 bg-[#FFF9ED] shadow-md">
         {recordedLectures.map((lecture) => (
-          <li key={lecture.id} className="bg-background p-4 rounded-lg shadow-md">
+          <li key={lecture.id} className="p-4 rounded-lg shadow-md">
             <div className="flex justify-between items-center">
               <div>
                 <h4 className="font-semibold text-lg text-primary">{lecture.title}</h4>
