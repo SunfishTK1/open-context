@@ -1,17 +1,25 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
-from fastapi.responses import JSONResponse
 from fastapi.responses import *
-from pinecone import Pinecone
-import json
-
+from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
+from pinecone import Pinecone
+import json
 
 load_dotenv()
 
 app = FastAPI()
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # React app's origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 index_name = "example-index2"
 namespace_name = "default"
@@ -116,6 +124,10 @@ async def chat_completions(request: ChatRequest):
     messages=message_list,
     tools=tools
     )
+    # message_list.append({'role':'assistant', 'content': str(response.choices[0].message.content)})
+
+    new_message = {'role': 'assistant', 'content': response.choices[0].message.content}
+
     tool_called = response.choices[0].message.tool_calls
     tool_results = []
     if tool_called:
@@ -144,7 +156,7 @@ async def chat_completions(request: ChatRequest):
         print("CRAZY BAT OUT OF CONGRESS")
 
     print({'role':'assistant', 'content': str(response.choices[0].message.content)})
-    return message_list
+    return request.messages + [new_message]
     '''
     return JSONResponse(
             status_code=200,
