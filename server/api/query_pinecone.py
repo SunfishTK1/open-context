@@ -8,10 +8,12 @@ from dotenv import load_dotenv
 load_dotenv()
 client = OpenAI()
 
-index_name = "example-index"
-namespace_name = "example-namespace"
+index_name = "example-index2"
+namespace_name = "default"
 
-pc = Pinecone(api_key="YOUR_API_KEY")
+keyB = os.getenv("PINECONE_API_KEY")
+
+pc = Pinecone(api_key=keyB)
 index = pc.Index(index_name)
 
 def query(search_query, clientId=None, courseId=None, lectureId=None, document_type=None, top_k=10):
@@ -24,30 +26,34 @@ def query(search_query, clientId=None, courseId=None, lectureId=None, document_t
     our_filter = {}
     if clientId:
         our_filter.update({
-            "clientId": {"$eq": clientId}
+            "client_id": {"$eq": clientId}
         })
     if courseId:
         our_filter.update({
-            "courseId": {"$eq": courseId}
+            "course_id": {"$eq": courseId}
         })
     if lectureId:
         our_filter.update({
-            "lectureId": {"$eq": lectureId}
+            "lecture_id": {"$eq": lectureId}
         })
     if document_type:
         our_filter.update({
-            "documentType": {"$eq": document_type}
+            "document_type": {"$eq": document_type}
         })
 
     
     
     return index.query(
-        namespace=namespace_name,
         vector=embedding,
         filter=our_filter,
         top_k=top_k,
         include_metadata=True
     )
+
+if __name__ == "__main__":
+    print(query("hackharvard", courseId="hi"))
+
+
 '''
 index.query(
     namespace=namespace_name,

@@ -10,15 +10,15 @@ module.exports = {
       colors: {
         primary: {
           light: '#4da6ff',
-          DEFAULT: '#0066cc',
+          DEFAULT: '#424530',
           dark: '#004c99',
         },
         secondary: {
           light: '#ffd699',
-          DEFAULT: '#ffaa00',
+          DEFAULT: '#E09132',
           dark: '#cc8800',
         },
-        background: '#f0f4f8',
+        background: '#FFF4DD',
       },
       fontFamily: {
         sans: ['Inter var', ...defaultTheme.fontFamily.sans],
