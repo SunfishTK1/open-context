@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
-const GenerateQuiz = ({ lecture, onClose }) => {
+const GenerateQuiz = ({ documents, onClose }) => {
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
@@ -11,27 +11,22 @@ const GenerateQuiz = ({ lecture, onClose }) => {
   useEffect(() => {
     // Simulate API call to generate questions
     setTimeout(() => {
-      const generatedQuestions = [
+      const generatedQuestions = documents.flatMap(doc => [
         {
-          question: "What is the main topic of this lecture?",
+          question: `What is the main topic of ${doc.type} ${doc.number}?`,
           options: ["Option A", "Option B", "Option C", "Option D"],
           correctAnswer: 1
         },
         {
-          question: "Which concept was explained in detail during the lecture?",
+          question: `Which concept was explained in detail during ${doc.type} ${doc.number}?`,
           options: ["Concept X", "Concept Y", "Concept Z", "Concept W"],
           correctAnswer: 2
-        },
-        {
-          question: "What was the key takeaway from this lecture?",
-          options: ["Takeaway 1", "Takeaway 2", "Takeaway 3", "Takeaway 4"],
-          correctAnswer: 0
         }
-      ];
+      ]);
       setQuestions(generatedQuestions);
       setIsLoading(false);
     }, 2000);
-  }, [lecture]);
+  }, [documents]);
 
   const handleAnswer = (selectedAnswer) => {
     if (selectedAnswer === questions[currentQuestion].correctAnswer) {
@@ -66,7 +61,7 @@ const GenerateQuiz = ({ lecture, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">Quiz for {lecture.title}</h3>
+          <h3 className="text-xl font-semibold">Quiz for Selected Documents</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             <X size={24} />
           </button>
@@ -91,8 +86,8 @@ const GenerateQuiz = ({ lecture, onClose }) => {
           <div>
             <h4 className="text-lg font-semibold mb-2">Quiz Results</h4>
             <p className="mb-4">You scored {score} out of {questions.length}</p>
-            <button onClick={resetQuiz} className="btn btn-primary mr-2">Retake Quiz</button>
-            <button onClick={onClose} className="btn btn-secondary">Close</button>
+            <button onClick={resetQuiz} className="bg-[#EFCB63] text-[#62684A] py-2 px-4 rounded-md font-semibold mr-2">Retake Quiz</button>
+            <button onClick={onClose} className="bg-gray-200 text-gray-700 py-2 px-4 rounded-md font-semibold">Close</button>
           </div>
         )}
       </div>

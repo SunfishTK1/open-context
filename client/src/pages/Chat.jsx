@@ -48,7 +48,7 @@ const Chat = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-[#FFF4DD]">
       <ChatHistory
         chatHistory={chatHistory}
         onSelectChat={setSelectedChat}
