@@ -20,6 +20,13 @@ from datetime import datetime
 import uuid
 import io
 
+import os
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import JSONResponse
+from PyPDF2 import PdfReader
+from datetime import datetime
+import uuid
+
 from dotenv import load_dotenv
 
 from pinecone import Pinecone
@@ -141,14 +148,9 @@ async def get_pdf_file(client_id: int, course_id: str, lecture_id: str, file_typ
 
 # main.py
 
-import os
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import JSONResponse
-from PyPDF2 import PdfReader
-from datetime import datetime
-import uuid
 
-app = FastAPI(title="PDF to Text Converter API")
+
+#app = FastAPI(title="PDF to Text Converter API")
 
 # Directory to save the extracted text files
 TEXT_SAVE_DIRECTORY = "extracted_texts"
@@ -156,8 +158,8 @@ TEXT_SAVE_DIRECTORY = "extracted_texts"
 # Ensure the directory exists
 os.makedirs(TEXT_SAVE_DIRECTORY, exist_ok=True)
 
-@app.post("/upload-pdf/")
-async def upload_pdf(file: UploadFile = File(...)):
+@app.post("/upload-pdf/{client_id}/{course_id}/{lecture_id}")
+async def upload_pdf(client_id: str, course_id: str, lecture_id: str, doctype: str, file: UploadFile = File(...)):
     """
     Endpoint to upload a PDF file, extract text, save it, and confirm success.
     """
@@ -166,6 +168,59 @@ async def upload_pdf(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Invalid file type. Please upload a PDF file.")
 
     try:
+        
+        client = OpenAI()
+        EMBEDDING_SIZE = 3072
+        clid = client_id
+        COURSE_ID = [clid] * EMBEDDING_SIZE
+        lid = lecture_id
+        LECTURE_ID = [lid] * EMBEDDING_SIZE
+        cid = course_id
+        CLIENT_ID = [cid] * EMBEDDING_SIZE
+        doctype = "pdf"
+        DOCUMENT_TYPE = [doctype] * EMBEDDING_SIZE
+
+
+        def get_embedding(text, model="text-embedding-3-large"):
+            text = text.replace("\n", " ")
+            return client.embeddings.create(input=[text], model=model).data[0].embedding
+
+
+        pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+
+        index = pc.Index("example-index2")
+        #file_path = os.path.join("/Users/thomaskanz/Documents/CMU/Hackathons/HackHarvard/server/api", file.filename)
+        await file.seek(0)
+    
+        # Use the file-like object provided by UploadFile
+        reader = PdfReader(file.file)
+        TEXTS = []
+        for page_num in range(len(reader.pages)):
+            page = reader.pages[page_num]
+            a = (page.extract_text()).split("\n\n")
+            TEXTS.append(a)
+        TEXTS = [item for l in TEXTS for item in l]
+
+        EMBEDDINGS = [get_embedding(text) for text in TEXTS]
+        IDS = [str(i) for i in range(1, EMBEDDING_SIZE + 1)]
+        combined = list(zip(IDS, CLIENT_ID, COURSE_ID, LECTURE_ID, TEXTS, EMBEDDINGS, DOCUMENT_TYPE))
+
+        vectors = [
+                {
+                    "id": id,
+                    "values": embedding,
+                    "metadata": {"client_id": clientid, "course_id": courseid, "lecture_id": lectureid, "text": text, "document_type": doctype}
+                }
+                for (id, clientid, courseid, lectureid, text, embedding, doctype) in combined
+            ]
+        index.upsert(
+            vectors=vectors
+        )
+        print("SUCCESS")
+
+        
+        
+        '''
         # Read file content into memory
         contents = await file.read()
 
@@ -187,15 +242,15 @@ async def upload_pdf(file: UploadFile = File(...)):
         # Save the extracted text to a .txt file
         with open(txt_filepath, "w", encoding="utf-8") as txt_file:
             txt_file.write(text)
-
+        '''
         # Optionally, you can return the path or URL to the saved file
-        return JSONResponse(
-            status_code=200,
-            content={
-                "message": "PDF processed and text extracted successfully.",
-                "text_file": txt_filename
-            }
-        )
+        #return JSONResponse(
+        ##    status_code=200,
+        #    content={
+        #        "message": "PDF processed and text extracted successfully.",
+        #        "text_file": txt_filename
+        #    }
+        #)
 
     except Exception as e:
         # Log the exception if needed
