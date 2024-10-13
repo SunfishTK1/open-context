@@ -122,20 +122,20 @@ const Sidebar = () => {
 
   return (
     <div className="w-64 bg-sand-200 p-6 space-y-4">
-      <button className="w-full bg-olive-600 text-sand-100 px-4 py-2 rounded-lg shadow-md hover:bg-olive-700 transition-colors">
+      <button className="w-full border-4 border-[#424530] bg-olive-600 text-sand-100 px-4 py-2 rounded-lg shadow-md hover:bg-olive-700 transition-colors">
         Start a new chat
       </button>
-      <label className="w-full bg-sand-300 text-olive-700 px-4 py-2 rounded-lg shadow-md hover:bg-sand-400 transition-colors flex items-center justify-center cursor-pointer">
+      <label className="w-full border-4 border-[#424530] bg-sand-300 text-olive-700 px-4 py-2 rounded-lg shadow-md hover:bg-sand-400 transition-colors flex items-center justify-center cursor-pointer">
         <Upload className="mr-2" size={20} />
         Upload Lecture
         <input type="file" accept="audio/*" onChange={handleUploadLecture} className="hidden" />
       </label>
-      <label className="w-full bg-sand-300 text-olive-700 px-4 py-2 rounded-lg shadow-md hover:bg-sand-400 transition-colors flex items-center justify-center cursor-pointer">
+      <label className="w-full border-4 border-[#424530] bg-sand-300 text-olive-700 px-4 py-2 rounded-lg shadow-md hover:bg-sand-400 transition-colors flex items-center justify-center cursor-pointer">
         <FileText className="mr-2" size={20} />
         Upload PDF
         <input type="file" accept=".pdf" onChange={handleUploadPDF} className="hidden" />
       </label>
-      <label className="w-full bg-sand-300 text-olive-700 px-4 py-2 rounded-lg shadow-md hover:bg-sand-400 transition-colors flex items-center justify-center cursor-pointer">
+      <label className="w-full border-4 border-[#424530] bg-sand-300 text-olive-700 px-4 py-2 rounded-lg shadow-md hover:bg-sand-400 transition-colors flex items-center justify-center cursor-pointer">
         <MessageSquare className="mr-2" size={20} />
         Upload Notes
         <input
