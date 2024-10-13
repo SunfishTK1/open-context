@@ -23,3 +23,7 @@ yarn-error.log*
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# earlier Terraform
+server/.terraform.lock.hcl
+server/.terraform/providers/registry.terraform.io/hashicorp/*
