@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
+from fastapi.responses import JSONResponse
+from fastapi.responses import *
 
 import os
-import load_dotenv
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -18,11 +20,23 @@ client = OpenAI()
 
 @app.post("/chat/completions")
 async def chat_completions(request: ChatRequest):
+    message_list = request.messages
     response = client.chat.completions.create(
     model="gpt-4o",
     messages=request.messages
-)
-    return response.choices[0].message["content"]
+    )
+    message_list.append({'role':'assistant', 'content': str(response.choices[0].message.content)})
+    print({'role':'assistant', 'content': str(response.choices[0].message.content)})
+    return message_list
+    '''
+    return JSONResponse(
+            status_code=200,
+            content={
+                "text": "Success",
+                "data": response.messages.append(response.choices[0].message)
+            }
+        )
+    '''
 
 # Run the application
 if __name__ == "__main__":
