@@ -14,6 +14,9 @@ import numpy as np
 from enum import Enum
 from typing import Optional, List
 
+
+from fastapi.middleware.cors import CORSMiddleware
+
 from PyPDF2 import PdfReader
 from datetime import datetime
 import uuid
@@ -42,6 +45,15 @@ keyB = os.getenv("PINECONE_API_KEY")
 #index = pc.Index(index_name)
 
 app = FastAPI()
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # React app's origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Enum for data source types
 class DataSource(str, Enum):

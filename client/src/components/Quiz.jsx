@@ -7,10 +7,9 @@ const Quiz = () => {
   const [showQuiz, setShowQuiz] = useState(false);
 
   const documents = [
-    { type: 'Lecture', number: 1, title: 'Introduction to React' },
-    { type: 'PDF', number: 5, title: 'Advanced JavaScript Concepts' },
-    { type: 'Lecture', number: 2, title: 'State Management in React' },
-    { type: 'PDF', number: 3, title: 'CSS Flexbox and Grid' },
+    { type: 'Lecture', number: 1, title: 'Lecture 1' },
+    { type: 'PDF', number: 1, title: '1612.00593v2.pdf' },
+    { type: 'PDF', number: 2, title: 'Catastrophic Interference in connectionist networks.pdf' },
   ];
 
   const handleDocumentToggle = (doc) => {

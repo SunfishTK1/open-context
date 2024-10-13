@@ -16,6 +16,7 @@ const CourseDocuments = ({ documents }) => {
 
   const handleDelete = (document) => {
     console.log("Delete document", document);
+    // Implement delete functionality if needed
   };
 
   return (
@@ -29,9 +30,11 @@ const CourseDocuments = ({ documents }) => {
               <p className="text-sm text-gray-500">{doc.date}</p>
             </div>
             <div className="flex space-x-2">
-              <button onClick={() => handlePlay(doc)} className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600">
-                <Play size={16} />
-              </button>
+              {doc.type === 'audio' && (
+                <button onClick={() => handlePlay(doc)} className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600">
+                  <Play size={16} />
+                </button>
+              )}
               <button onClick={() => handleTranscribe(doc)} className="p-2 bg-green-500 text-white rounded-full hover:bg-green-600">
                 <FileText size={16} />
               </button>

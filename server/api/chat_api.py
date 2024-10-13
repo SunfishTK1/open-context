@@ -1,10 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
 from openai import OpenAI
 from fastapi.responses import JSONResponse
 from fastapi.responses import *
 from pinecone import Pinecone
 import json
+import PyPDF2
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -118,6 +119,34 @@ tools = [
 messages = []
 messages.append({"role": "system", "content": "You are a helpful notes agent.  You can search for information in the Pinecone index of class recordings, notes, and lecture slides.  Please provide a detailed question or phrase that contains extensive levels of detail."})
 
+
+
+# New endpoint for retrieving chat history
+@app.get("/chat/history")
+async def get_chat_history():
+    # In a real application, you would typically fetch this from a database
+    # For now, we'll return a dummy chat history
+    dummy_history = [
+        {
+            "id": "1",
+            "title": "First Chat",
+            "messages": [
+                {"role": "user", "content": "Hello!"},
+                {"role": "assistant", "content": "Hi there! How can I help you today?"}
+            ]
+        },
+        {
+            "id": "2",
+            "title": "Second Chat",
+            "messages": [
+                {"role": "user", "content": "What's the weather like?"},
+                {"role": "assistant", "content": "I'm sorry, I don't have real-time weather information. You might want to check a weather website or app for the most up-to-date forecast."}
+            ]
+        }
+    ]
+    return JSONResponse(content=dummy_history)
+
+
 @app.post("/chat/completions")
 async def chat_completions(request: ChatRequest):
     message_list = messages
@@ -170,6 +199,38 @@ async def chat_completions(request: ChatRequest):
             }
         )
     '''
+
+@app.post("/upload-pdf")
+async def upload_pdf(file: UploadFile = File(...)):
+    if file.content_type != "application/pdf":
+        return JSONResponse(status_code=400, content={"message": "Only PDF files are allowed"})
+
+    try:
+        # Read the PDF content
+        pdf_content = await file.read()
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_content))
+        
+        # Extract text from all pages
+        text = ""
+        for page in pdf_reader.pages:
+            text += page.extract_text()
+
+        # Create embeddings for the extracted text
+        response = client.embeddings.create(
+            input=text,
+            model="text-embedding-3-large"
+        )
+        embedding = response.data[0].embedding
+
+        # Store the embedding in Pinecone
+        unique_id = f"pdf_{file.filename}_{os.urandom(4).hex()}"
+        index.upsert(vectors=[
+            (unique_id, embedding, {"content": text, "filename": file.filename})
+        ])
+
+        return JSONResponse(status_code=200, content={"message": "PDF processed and stored successfully", "id": unique_id})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"message": f"Error processing PDF: {str(e)}"})
 
 # Run the application
 if __name__ == "__main__":

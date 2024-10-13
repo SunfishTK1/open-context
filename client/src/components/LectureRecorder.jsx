@@ -2,24 +2,22 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Mic, Square, Upload, Play, Pause, Trash2, FileText, HelpCircle } from 'lucide-react';
 import GenerateQuiz from './GenerateQuiz';
 
-const LectureRecorder = () => {
-    const [isRecording, setIsRecording] = useState(false);
-    const [recordedLectures, setRecordedLectures] = useState([]);
-    const [currentAudio, setCurrentAudio] = useState(null);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [currentTranscription, setCurrentTranscription] = useState(null);
-    const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
-    const [currentLectureForQuiz, setCurrentLectureForQuiz] = useState(null);
-  
-    const mediaRecorderRef = useRef(null);
-    const audioChunksRef = useRef([]);
+const LectureRecorder = ({ clientId, courseId }) => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordedLectures, setRecordedLectures] = useState([]);
+  const [currentAudio, setCurrentAudio] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTranscription, setCurrentTranscription] = useState(null);
+  const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
+  const [currentLectureForQuiz, setCurrentLectureForQuiz] = useState(null);
+
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   useEffect(() => {
-    return () => {
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-        mediaRecorderRef.current.stop();
-      }
-    };
+    // Load lectures from local storage on component mount
+    const savedLectures = JSON.parse(localStorage.getItem('recordedLectures') || '[]');
+    setRecordedLectures(savedLectures);
   }, []);
 
   const startRecording = async () => {
@@ -32,16 +30,26 @@ const LectureRecorder = () => {
         audioChunksRef.current.push(event.data);
       };
 
-      mediaRecorderRef.current.onstop = () => {
+      mediaRecorderRef.current.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const newLecture = {
-          id: Date.now(),
-          title: `Lecture ${recordedLectures.length + 1}`,
-          date: new Date().toLocaleDateString(),
-          audio: audioUrl,
-        };
-        setRecordedLectures([...recordedLectures, newLecture]);
+        const lectureId = Date.now().toString();
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = function() {
+          const base64AudioMessage = reader.result;
+          const newLecture = {
+            id: lectureId,
+            title: `Lecture ${recordedLectures.length + 1}`,
+            date: new Date().toLocaleDateString(),
+            clientId,
+            courseId,
+            lectureId,
+            audioData: base64AudioMessage
+          };
+          const updatedLectures = [...recordedLectures, newLecture];
+          setRecordedLectures(updatedLectures);
+          localStorage.setItem('recordedLectures', JSON.stringify(updatedLectures));
+        }
       };
 
       mediaRecorderRef.current.start();
@@ -58,25 +66,35 @@ const LectureRecorder = () => {
     }
   };
 
-  const uploadAudio = (event) => {
+  const handleUploadAudio = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const audioUrl = URL.createObjectURL(file);
-      const newLecture = {
-        id: Date.now(),
-        title: file.name,
-        date: new Date().toLocaleDateString(),
-        audio: audioUrl,
-      };
-      setRecordedLectures([...recordedLectures, newLecture]);
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = function() {
+        const base64AudioMessage = reader.result;
+        const lectureId = Date.now().toString();
+        const newLecture = {
+          id: lectureId,
+          title: file.name,
+          date: new Date().toLocaleDateString(),
+          clientId,
+          courseId,
+          lectureId,
+          audioData: base64AudioMessage
+        };
+        const updatedLectures = [...recordedLectures, newLecture];
+        setRecordedLectures(updatedLectures);
+        localStorage.setItem('recordedLectures', JSON.stringify(updatedLectures));
+      }
     }
   };
 
-  const playAudio = (audioUrl) => {
+  const playAudio = (lecture) => {
     if (currentAudio) {
       currentAudio.pause();
     }
-    const audio = new Audio(audioUrl);
+    const audio = new Audio(lecture.audioData);
     audio.play();
     setCurrentAudio(audio);
     setIsPlaying(true);
@@ -94,19 +112,20 @@ const LectureRecorder = () => {
   };
 
   const deleteLecture = (id) => {
-    setRecordedLectures(recordedLectures.filter(lecture => lecture.id !== id));
+    const updatedLectures = recordedLectures.filter(lecture => lecture.id !== id);
+    setRecordedLectures(updatedLectures);
+    localStorage.setItem('recordedLectures', JSON.stringify(updatedLectures));
   };
-
 
   const transcribeLecture = async (lectureId) => {
     const lecture = recordedLectures.find(l => l.id === lectureId);
     if (!lecture) return;
 
-    // dummy backend interation
     setCurrentTranscription("Transcribing...");
     
+    // Simulating transcription process
     setTimeout(() => {
-      setCurrentTranscription(`This is a simulated transcription for "${lecture.title}". In a real application, this would be the actual transcribed text of the audio file.`);
+      setCurrentTranscription(``);
     }, 2000);
   };
 
@@ -122,8 +141,6 @@ const LectureRecorder = () => {
     setIsGeneratingQuiz(false);
     setCurrentLectureForQuiz(null);
   };
-
-
 
   return (
     <div className="p-6 rounded-xl mt-6">
@@ -149,7 +166,7 @@ const LectureRecorder = () => {
         <label className="btn btn-secondary flex items-center cursor-pointer">
           <Upload size={20} className="mr-2" />
           Upload Audio
-          <input type="file" accept="audio/*" onChange={uploadAudio} className="hidden" />
+          <input type="file" accept="audio/*" onChange={handleUploadAudio} className="hidden" />
         </label>
       </div>
       <h3 className="text-2xl font-display font-semibold mb-4 text-[#424530]">Recorded Lectures</h3>
@@ -162,12 +179,12 @@ const LectureRecorder = () => {
                 <p className="text-sm text-gray-500">{lecture.date}</p>
               </div>
               <div className="flex space-x-2">
-                {isPlaying && currentAudio && currentAudio.src === lecture.audio ? (
+                {isPlaying && currentAudio && currentAudio.src === lecture.audioData ? (
                   <button onClick={pauseAudio} className="p-2 bg-secondary text-white rounded-full">
                     <Pause size={20} />
                   </button>
                 ) : (
-                  <button onClick={() => playAudio(lecture.audio)} className="p-2 bg-primary text-white rounded-full">
+                  <button onClick={() => playAudio(lecture)} className="p-2 bg-primary text-white rounded-full">
                     <Play size={20} />
                   </button>
                 )}
